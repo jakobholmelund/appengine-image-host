@@ -30,39 +30,8 @@ class Index(webapp.RequestHandler):
         # query the datastore for images owned by
         # the current user. You can't see anyone elses images
         # in the admin
-        '''
-        org = Organisation().get_by_name(org)
-              
-        if org is None:
-            return self.error(404)
         
-        cats = org.cats
-        
-        if cats is None:
-            return self.error(404)
-        
-        activeimgcat = self.request.get("imgcat")
-        activecsscat = self.request.get("csscat")
-        activeblobcat = self.request.get("blobcat")
-        
-        if activeimgcat is None:
-            activeimgcat = org.cats[0]
-            activecsscat = org.cats[0]
-            activeblobcat = org.cats[0]
-
-        
-        
-        images = []
-        files = []
-        blobs = []
-        
-        for cat in cats:
-            images[cat] = cat.images
-            files[cat] = cat.cssfiles.filter("user =", user).order("-date")
-            blobs[cat] = cat.blobfiles.filter("user =", user).order("-date")            
-        '''
-        
-        test = geturl('http://org-images.appspot.com/remote/upload/image/agpvcmctaW1hZ2VzchALEglSZWFsbUtleXMY0Q8M')
+        test = geturl('http://org-images.appspot.com/remote/upload/image/[valid realm key]') #add valid realmkey
         url = test.get_url()
         
         user = users.get_current_user()
