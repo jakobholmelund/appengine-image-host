@@ -4,6 +4,8 @@ Provides a protected administrative area for uploading and deleteing images
 
 import os
 import datetime
+import logging
+import cssmin
 
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -11,8 +13,12 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.api import images
 from google.appengine.ext.webapp import template
 from google.appengine.api import users
+from google.appengine.ext.webapp import blobstore_handlers
+from google.appengine.ext import blobstore
+from django.utils import simplejson
+from urlgetter import geturl
 
-from models import Image
+from models import Image,File,BlobFile,RealmKeys,UploadRequestKeys
 
 class Index(webapp.RequestHandler):
     """
@@ -24,25 +30,80 @@ class Index(webapp.RequestHandler):
         # query the datastore for images owned by
         # the current user. You can't see anyone elses images
         # in the admin
-        images = Image.all()
-        images.filter("user =", users.get_current_user())
-        images.order("-date")
+        '''
+        org = Organisation().get_by_name(org)
+              
+        if org is None:
+            return self.error(404)
+        
+        cats = org.cats
+        
+        if cats is None:
+            return self.error(404)
+        
+        activeimgcat = self.request.get("imgcat")
+        activecsscat = self.request.get("csscat")
+        activeblobcat = self.request.get("blobcat")
+        
+        if activeimgcat is None:
+            activeimgcat = org.cats[0]
+            activecsscat = org.cats[0]
+            activeblobcat = org.cats[0]
 
-        # we are enforcing loggins so we know we have a user
+        
+        
+        images = []
+        files = []
+        blobs = []
+        
+        for cat in cats:
+            images[cat] = cat.images
+            files[cat] = cat.cssfiles.filter("user =", user).order("-date")
+            blobs[cat] = cat.blobfiles.filter("user =", user).order("-date")            
+        '''
+        
+        test = geturl('http://org-images.appspot.com/remote/upload/image/agpvcmctaW1hZ2VzchALEglSZWFsbUtleXMY0Q8M')
+        url = test.get_url()
+        
         user = users.get_current_user()
+        
+        realms = RealmKeys.all()
+        
+        images = Image.all().filter("user =", user).order("-date")
+        
+        files = File.all()
+        files.filter("user =", user)
+        files.order("-date")
+        
+        blobs = BlobFile.all()
+        blobs.filter("user =", user)
+        blobs.order("-date")
+        
+        # we are enforcing loggins so we know we have a user
+        
         # we need the logout url for the frontend
         logout = users.create_logout_url("/")
 
         # prepare the context for the template
         context = {
+            "testurl" : url,
+            "blobuploadurl" : blobstore.create_upload_url('/upload/blob'),
+            "blobs": blobs,
+            "files": files,
             "images": images,
             "logout": logout,
+            "realms": realms,
         }
         # calculate the template path
         path = os.path.join(os.path.dirname(__file__), 'templates',
             'index.html')
         # render the template with the provided context
         self.response.out.write(template.render(path, context))
+    def post(self):
+        realm = RealmKeys()
+        realm.realm_name = self.request.get("realm_name")
+        realm.put()
+        self.redirect('/')
 
 class Deleter(webapp.RequestHandler):
     "Deals with deleting images"
@@ -52,63 +113,98 @@ class Deleter(webapp.RequestHandler):
         user = users.get_current_user()
         key = self.request.get("key")
         if key:
-            image = db.get(key)
+            object = db.get(key)
             # check that we own this image
-            if image.user == user:
-                image.delete()
+            if object.user == user:
+                object.delete()
         # whatever happens rediect back to the main admin view
         self.redirect('/')
-       
-class Uploader(webapp.RequestHandler):
-    "Deals with uploading new images to the datastore"
+
+class ImageUploader(webapp.RequestHandler):
     def post(self):
         "Upload via a multitype POST message"
-        
-        img = self.request.get("img")
 
+        img = self.request.get("img")
         # if we don't have image data we'll quit now
         if not img:
             self.redirect('/')
-            return 
-            
-        # we have image data
+            return
         try:
-            # check we have numerical width and height values
             width = int(self.request.get("width"))
-            height = int(self.request.get("height"))
+            hight = int(self.request.get("height"))
         except ValueError:
-            # if we don't have valid width and height values
-            # then just use the original image
             image_content = img
         else:
-            # if we have valid width and height values
-            # then resize according to those values
             image_content = images.resize(img, width, height)
-        
-        # get the image data from the form
+
         original_content = img
-        # always generate a thumbnail for use on the admin page
+
         thumb_content = images.resize(img, 100, 100)
-        
-        # create the image object
+
         image = Image()
-        # and set the properties to the relevant values
+
         image.image = db.Blob(image_content)
-        # we always store the original here in case of errors
-        # although it's currently not exposed via the frontend
+
         image.original = db.Blob(original_content)
         image.thumb = db.Blob(thumb_content)
         image.user = users.get_current_user()
-                
-        # store the image in the datasore
         image.put()
-        # and redirect back to the admin page
         self.redirect('/')
-                
+
+class FileUploader(webapp.RequestHandler):
+    def post(self):
+        fil = self.request.POST["file"]
+        if not fil.value:
+            self.redirect('/')
+            return
+        minifi = self.request.get("minify")
+        
+        if minifi:
+            fil.value = cssmin.cssmin(fil.value)
+        file = File()
+        file.name = fil.filename
+        file.file = db.Blob(fil.value)
+        file.content_type = fil.type
+        file.user = users.get_current_user()
+        file.put()
+        self.redirect('/')
+        
+class JscriptUploader(webapp.RequestHandler):
+    def post(self):
+        fil = self.request.POST["file"]
+        if not fil.value:
+            self.redirect('/')
+            return
+        minifi = self.request.get("minify")
+        
+        if minifi:
+            fil.value = cssmin.cssmin(fil.value)
+        file = File()
+        file.name = fil.filename
+        file.file = db.Blob(fil.value)
+        file.content_type = fil.type
+        file.user = users.get_current_user()
+        file.put()
+        self.redirect('/')
+        
+class BlobUploader(blobstore_handlers.BlobstoreUploadHandler):
+    def post(self):
+        upload_files = self.get_uploads('file')  # 'file' is file upload field in the form
+        blob_info = upload_files[0]
+        blobfile = BlobFile()
+        blobfile.blobkey = blob_info.key()
+        blobfile.name = blob_info.filename
+        blobfile.user = users.get_current_user()
+        blobfile.put()
+        self.redirect('/')
+
 # wire up the views
 application = webapp.WSGIApplication([
     ('/', Index),
-    ('/upload', Uploader),
+    ('/upload/image', ImageUploader),
+    ('/upload/file', FileUploader),
+    ('/upload/blob', BlobUploader),
+
     ('/delete', Deleter)
 ], debug=True)
 

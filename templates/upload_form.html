@@ -1,0 +1,21 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title></title>
+    <link rel="stylesheet" href="/assets/css/common.css" type="text/css" media="all" charset="utf-8"/>
+	<script src="/assets/js/mootools.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/assets/js/UploadForm.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" charset="utf-8">
+	window.addEvent('domready', function() {
+		var upload = new UploadForm({upload_url:'{{url}}',form_container:$('formcontainer')});
+		upload.createForm('image');
+	});
+	</script>
+</head>
+<body>
+<div id="formcontainer">
+</div>
+</body>
+</html>

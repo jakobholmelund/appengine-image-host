@@ -3,24 +3,78 @@
 <html>
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <title>App Engine Image Host</title>
+    <title>App Engine File Host</title>
     <link rel="stylesheet" href="/assets/css/reset.css" type="text/css" media="all" charset="utf-8"/>
     <link rel="stylesheet" href="/assets/css/common.css" type="text/css" media="all" charset="utf-8"/>
-    <link rel="stylesheet" href="/assets/css/lightbox.css" type="text/css" media="screen" charset="utf-8"/>
+    <link rel="stylesheet" href="/assets/css/mediaboxAdvWhite.css" type="text/css" media="screen" charset="utf-8"/>
 
+<!--
     <script src="/assets/js/jquery.js" type="text/javascript" charset="utf-8"></script>
     <script src="/assets/js/jquery.lightbox.js" type="text/javascript" charset="utf-8"></script>
     <script src="/assets/js/common.js" type="text/javascript" charset="utf-8"></script>
+	-->
+	<script src="/assets/js/mootools.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/assets/js/mediabox.js" type="text/javascript" charset="utf-8"></script>
+	
+	<script type="text/javascript" charset="utf-8">
+		window.addEvent('domready', function() {
+			
+			// NOT SAFE !!! This exsposes the ket.. this is only for test purpose... Use pythonclass from urlgetter.py in code-behind
+			var ull = $('realms').getElements('li');
+			$each(ull,function(elem){
+					var a = elem.getElement('a');
+					var key = elem.getElement('span').innerHTML;
+					
+					var request = new Request.JSON({url: 'http://localhost:8080/remote/upload/image/' + key,
+						onComplete: function(jsonObj) {
+							a.set({'href':jsonObj.upload_url});
+						}
+					}).get();
+					
+					a.addEvent('onclick',function(){
+						var request = new Request.JSON({url: 'http://localhost:8080/remote/upload/image/' + key,
+						onComplete: function(jsonObj) {
+							this.set({'href':jsonObj.upload_url});
+						}
+						}).get();
+					});
+			});
+		});
+	</script>
 </head>
 <body>
     <div id="main">
         <div id="head">
-            <h1>App Engine <span>Image Host</span></h1>
+            <h1>App Engine <span>File Host</span></h1>
             <a href="{{logout}}">logout</a>
         </div> <!-- end head -->
-
         <div id="content">
-            <form action="/upload" enctype="multipart/form-data" method="post">
+		
+		<div id="formcontainer">
+			<iframe src="{{testurl}}" width="800" height="50"></iframe>
+		</div>
+		
+		<h2>Realms</h2>
+		<div class="filetype">
+	    <form action="." method="post">
+		<label for="realm_name">Realm Name</label>
+                <input type="text" name="realm_name" id="realm_name"/>
+		<input type="submit" value="Inser realm"/>
+	    </form>
+	    {% if realms %}
+	     <ul id="realms">
+	    {% for realm in realms %}
+                <li>
+				{{realm.realm_name}}(<span>{{realm.key}}</span>)<a href="" onlclick="alert(this + 'clicked');RemoteUpload.getUrl(this,'document.location' + remote/upload/image + '{{realm.key}}')" rel="lightbox[external]">Test remote image upload</a>
+                </li>
+            {% endfor %}
+	     </ul>
+	    {% endif %}
+	    </div>
+		
+		<h2>Images</h2>
+	    <div class="filetype">
+            <form action="/upload/image" enctype="multipart/form-data" method="post">
                 <label for="img">Image</label>
                 <input type="file" name="img" id="img"/>
                 <label for="width">Width</label>
@@ -35,19 +89,67 @@
             {% if images %}
             <ul id="images">
             {% for image in images %}
-                <li>
-                    <a href="/i/img?id={{image.key}}" class="lightbox"><img src="/i/thumb?id={{image.key}}"/></a>
-                    <form action="/delete" method="post">
+			<li>
+                    <a href="/i/img?id={{image.key}}" title="hmm" rel="lightbox[set1]"><img src="/i/thumb?id={{image.key}}"/></a>
+         
+					<form action="/delete" method="post">
                         <input type="hidden" value="{{image.key}}" name="key"/>
+                        <input type="submit" value="Delete" name="delete"/>
+                    </form>
+					</li>
+            {% endfor %}
+            </ul> <!-- end images -->
+            {% endif %}
+			
+            </div>
+            
+	    <h2>CSS-Files</h2>
+		<div class="filetype">
+	    <form action="/upload/file" enctype="multipart/form-data" method="post">
+                <label for="file">File</label>
+                <input type="file" name="file" id="file"/>
+				<label for="minify">Compress</label>
+				<input type="checkbox" name="minify" id="minify" value="True" checked> 
+                <input type="submit" value="Upload"/>
+            </form>
+			
+	    {% if files %}
+            <ul id="files">
+            {% for file in files %}
+                <li>
+                    <a href="/i/css?id={{file.key}}">{{file.name}}</a>
+                    <form action="/delete" method="post">
+                        <input type="hidden" value="{{file.key}}" name="key"/>
                         <input type="submit" value="Delete" name="delete"/>
                     </form>
                 </li>
             {% endfor %}
-            </ul> <!-- end images -->
+            </ul> 
             {% endif %}
-            
-            <p>This application was originally build by Gareth Rushgrove to host and quickly resize images for his blog <a href="http://morethanseven.net">morethanseven.net</a>. The code can be found on <a href="http://github.com/garethr/appengine-image-host">GitHub</a>.</p>
-        
+		</div>
+	    <h2>Blob-Files</h2>
+		<div class="filetype">
+	    	    <form action="{{blobuploadurl}}" enctype="multipart/form-data" method="post">
+                <label for="file">File</label>
+                <input type="file" name="file" id="file"/>
+                <input type="submit" value="Upload"/>
+            </form>
+			
+	    {% if blobs %}
+            <ul id="files">
+            {% for blob in blobs %}
+                <li>
+                    <a href="/i/blob?id={{blob.key}}">{{blob.name}}</a>
+                    <form action="/delete" method="post">
+                        <input type="hidden" value="{{blob.key}}" name="key"/>
+                        <input type="submit" value="Delete" name="delete"/>
+                    </form>
+                </li>
+            {% endfor %}
+            </ul> 
+            {% endif %}
+			</div>
+		<p>This application was originally build by Gareth Rushgrove to host and quickly resize images for his blog <a href="http://morethanseven.net">morethanseven.net</a>. The code can be found on <a href="http://github.com/garethr/appengine-image-host">GitHub</a>.</p>
         </div> <!-- end content -->
     </body>
 </html>

@@ -4,8 +4,15 @@
     border-bottom: 2px solid #AAA;
 }
 h1 {
-    font-size: 100%;
+    font-size: 20px;
     line-height: 1
+}
+h2 {
+    font-size: 15px;
+    line-height: 1;
+    font-weight: bold;
+    margin-bottom:5px;
+    
 }
 h1 span {
     display: block;
@@ -27,8 +34,9 @@ h1 span {
     clear: both;
 }
 #content form {
-    position: relative;
-    padding-top: 20px;
+    background-color:lightgoldenRodYellow;
+    padding-top:20px;
+    position:relative;
 }
 #content form input {
     margin-right: 10px;
@@ -62,4 +70,17 @@ a {
 }
 a:hover, a:focus {
     color: #333;
+}
+.filetype{
+    margin-bottom:8px;
+}
+
+#log_res.ajax-loading {
+	padding: 20px 0;
+	background: url(http://demos111.mootools.net/demos/Group/spinner.gif) no-repeat center;
+}
+
+#content div{
+	float:left;
+	width:100%;
 }
