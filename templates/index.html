@@ -8,29 +8,23 @@
     <link rel="stylesheet" href="/assets/css/common.css" type="text/css" media="all" charset="utf-8"/>
     <link rel="stylesheet" href="/assets/css/mediaboxAdvWhite.css" type="text/css" media="screen" charset="utf-8"/>
 
-<!--
-    <script src="/assets/js/jquery.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/assets/js/jquery.lightbox.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/assets/js/common.js" type="text/javascript" charset="utf-8"></script>
-	-->
 	<script src="/assets/js/mootools.js" type="text/javascript" charset="utf-8"></script>
 	<script src="/assets/js/mediabox.js" type="text/javascript" charset="utf-8"></script>
 	
 	<script type="text/javascript" charset="utf-8">
 		window.addEvent('domready', function() {
 			
-			// NOT SAFE !!! This exsposes the ket.. this is only for test purpose... Use pythonclass from urlgetter.py in code-behind
+			// NOT SAFE !!! This exsposes the key.. this is only for test purpose... Use pythonclass from urlgetter.py in code-behind
 			var ull = $('realms').getElements('li');
 			$each(ull,function(elem){
 					var a = elem.getElement('a');
 					var key = elem.getElement('span').innerHTML;
-					
+
 					var request = new Request.JSON({url: 'http://localhost:8080/remote/upload/image/' + key,
 						onComplete: function(jsonObj) {
 							a.set({'href':jsonObj.upload_url});
 						}
 					}).get();
-					
 					a.addEvent('onclick',function(){
 						var request = new Request.JSON({url: 'http://localhost:8080/remote/upload/image/' + key,
 						onComplete: function(jsonObj) {
@@ -51,7 +45,9 @@
         <div id="content">
 		
 		<div id="formcontainer">
+			{% if testurl %}
 			<iframe src="{{testurl}}" width="800" height="50"></iframe>
+			{% endif %}
 		</div>
 		
 		<h2>Realms</h2>
@@ -105,7 +101,7 @@
             
 	    <h2>CSS-Files</h2>
 		<div class="filetype">
-	    <form action="/upload/file" enctype="multipart/form-data" method="post">
+	    <form action="/upload/css" enctype="multipart/form-data" method="post">
                 <label for="file">File</label>
                 <input type="file" name="file" id="file"/>
 				<label for="minify">Compress</label>
@@ -113,9 +109,9 @@
                 <input type="submit" value="Upload"/>
             </form>
 			
-	    {% if files %}
+	    {% if cssfiles %}
             <ul id="files">
-            {% for file in files %}
+            {% for file in cssfiles %}
                 <li>
                     <a href="/i/css?id={{file.key}}">{{file.name}}</a>
                     <form action="/delete" method="post">
@@ -127,6 +123,37 @@
             </ul> 
             {% endif %}
 		</div>
+		
+		<h2>JavaScript-Files</h2>
+		<div class="filetype">
+	    <form action="/upload/jscript" enctype="multipart/form-data" method="post">
+                <label for="file">File</label>
+                <input type="file" name="file" id="file"/>
+				<label for="compression-type">Compress</label>
+				<select name="compression-type" id="compression-type">
+					<option value="NONE" selected>None</option>
+					<option value="WHITESPACE_ONLY">Minimum</option>
+					<option value="SIMPLE_OPTIMIZATIONS">Medium</option>
+					<option value="ADVANCED_OPTIMIZATIONS">Maximum</option>
+				</select>
+                <input type="submit" value="Upload"/>
+            </form>
+			
+	    {% if jscriptfiles %}
+            <ul id="files">
+            {% for file in jscriptfiles %}
+                <li>
+                    <a href="/i/jscript?id={{file.key}}">{{file.name}}</a>
+                    <form action="/delete" method="post">
+                        <input type="hidden" value="{{file.key}}" name="key"/>
+                        <input type="submit" value="Delete" name="delete"/>
+                    </form>
+                </li>
+            {% endfor %}
+            </ul> 
+            {% endif %}
+		</div>
+		
 	    <h2>Blob-Files</h2>
 		<div class="filetype">
 	    	    <form action="{{blobuploadurl}}" enctype="multipart/form-data" method="post">
@@ -150,6 +177,7 @@
             {% endif %}
 			</div>
 		<p>This application was originally build by Gareth Rushgrove to host and quickly resize images for his blog <a href="http://morethanseven.net">morethanseven.net</a>. The code can be found on <a href="http://github.com/garethr/appengine-image-host">GitHub</a>.</p>
-        </div> <!-- end content -->
+        <p>Later this was modded to become a filehost by Jakob Holmelund for hosting all kinda files for all his app-engine projects.</p>
+		</div> <!-- end content -->
     </body>
 </html>

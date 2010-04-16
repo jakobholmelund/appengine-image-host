@@ -5,7 +5,9 @@ Provides a protected administrative area for uploading and deleteing images
 import os
 import datetime
 import logging
+
 import cssmin
+import httplib, urllib, sys
 
 from google.appengine.ext import db
 from google.appengine.ext import webapp
@@ -31,8 +33,9 @@ class Index(webapp.RequestHandler):
         # the current user. You can't see anyone elses images
         # in the admin
         
-        test = geturl('http://org-images.appspot.com/remote/upload/image/[valid realm key]') #add valid realmkey
+        test = geturl('http://org-images.appspot.com/remote/upload/image/agpvcmctaW1hZ2VzchALEglSZWFsbUtleXMY0Q8M') #add valid realmkey
         url = test.get_url()
+        
         
         user = users.get_current_user()
         
@@ -40,9 +43,13 @@ class Index(webapp.RequestHandler):
         
         images = Image.all().filter("user =", user).order("-date")
         
-        files = File.all()
-        files.filter("user =", user)
-        files.order("-date")
+        cssfilesq = File.all()
+        jscriptfilesq = File.all()
+        
+        cssfiles = cssfilesq.filter('content_type =', 'text/css').order("-date")
+        jscriptfiles = jscriptfilesq.filter('content_type =','text/x-c').order("-date")
+        
+        #logging.getLogger().info(cssfilesq[0])
         
         blobs = BlobFile.all()
         blobs.filter("user =", user)
@@ -58,7 +65,8 @@ class Index(webapp.RequestHandler):
             "testurl" : url,
             "blobuploadurl" : blobstore.create_upload_url('/upload/blob'),
             "blobs": blobs,
-            "files": files,
+            "cssfiles": cssfiles,
+            "jscriptfiles": jscriptfiles,
             "images": images,
             "logout": logout,
             "realms": realms,
@@ -120,7 +128,7 @@ class ImageUploader(webapp.RequestHandler):
         image.put()
         self.redirect('/')
 
-class FileUploader(webapp.RequestHandler):
+class CSSUploader(webapp.RequestHandler):
     def post(self):
         fil = self.request.POST["file"]
         if not fil.value:
@@ -144,16 +152,34 @@ class JscriptUploader(webapp.RequestHandler):
         if not fil.value:
             self.redirect('/')
             return
-        minifi = self.request.get("minify")
-        
-        if minifi:
-            fil.value = cssmin.cssmin(fil.value)
+        logging.getLogger().info("selected val %s"%self.request.POST["compression-type"])
+        if self.request.POST["compression-type"] == 'NONE':
+            data = fil.value
+        else:
+            
+            params = urllib.urlencode([
+                ('js_code', fil.value),
+                ('compilation_level', self.request.POST["compression-type"]),
+                ('output_format', 'text'),
+                ('output_info', 'compiled_code'),
+            ])
+            
+            headers = { "Content-type": "application/x-www-form-urlencoded" }
+            conn = httplib.HTTPConnection('closure-compiler.appspot.com')
+            conn.request('POST', '/compile', params, headers)
+            response = conn.getresponse()
+            data = response.read()
+            conn.close
+
         file = File()
         file.name = fil.filename
-        file.file = db.Blob(fil.value)
+        file.file = db.Blob(data)
         file.content_type = fil.type
         file.user = users.get_current_user()
         file.put()
+        
+        
+        
         self.redirect('/')
         
 class BlobUploader(blobstore_handlers.BlobstoreUploadHandler):
@@ -171,10 +197,10 @@ class BlobUploader(blobstore_handlers.BlobstoreUploadHandler):
 application = webapp.WSGIApplication([
     ('/', Index),
     ('/upload/image', ImageUploader),
-    ('/upload/file', FileUploader),
+    ('/upload/css', CSSUploader),
+    ('/upload/jscript', JscriptUploader),
     ('/upload/blob', BlobUploader),
-
-    ('/delete', Deleter)
+    ('/delete', Deleter),
 ], debug=True)
 
 def main():

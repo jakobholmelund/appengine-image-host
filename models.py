@@ -35,7 +35,7 @@ class File(db.Model):
     # blog properties storing up to 1MB of binary data
     name = db.TextProperty()
     file = db.BlobProperty()
-    content_type = db.TextProperty()
+    content_type = db.StringProperty()
     # store the date just in case
     date = db.DateTimeProperty(auto_now_add=True)
     # all images are associated with the user who uploades them

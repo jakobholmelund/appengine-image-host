@@ -18,7 +18,7 @@ indexes:
 
 - kind: File
   properties:
-  - name: user
+  - name: content_type
   - name: date
     direction: desc
 

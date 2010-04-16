@@ -18,6 +18,7 @@ from google.appengine.ext.webapp import template
 from google.appengine.api import images
 from google.appengine.api import users
 import urllib
+import cssmin
 
 from models import Image,File,BlobFile,RealmKeys,UploadRequestKeys
   
@@ -44,12 +45,27 @@ class GenericServer(webapp.RequestHandler):
         
         logging.getLogger().info('prop %s'%self.property)
         
-        if self.property =='file':
+        if self.property =='css':
             if object and object.file:
-                # we have an image so prepare the response
-                # with the relevant headers
                 file = object.file
+                
+                compress = self.request.get("compress")
+                if compress == 'true':
+                    file = cssmin.cssmin(file)
+                # we have an file so prepare the response
+                # with the relevant headers
+                
                 self.response.headers['Content-Type'] = "text/css"
+                # and then write our the image data direct to the response
+                self.response.out.write(file)    
+            else:
+                self.error(404)
+        elif self.property =='jscript':
+            if object and object.file:
+                file = object.file
+                # we have an file so prepare the response
+                # with the relevant headers
+                self.response.headers['Content-Type'] = "text/javascript"
                 # and then write our the image data direct to the response
                 self.response.out.write(file)    
             else:
@@ -64,9 +80,13 @@ class GenericServer(webapp.RequestHandler):
             else:
                 self.error(404)
                 
-class FileServer(GenericServer):
+class CSSServer(GenericServer):
     "Serve a File"
-    property = 'file'
+    property = 'css'
+
+class JScriptServer(GenericServer):
+    "Serve a File"
+    property = 'jscript'
 
 class ImageServer(GenericServer):
     "Serve the main image"
@@ -198,7 +218,8 @@ class RemoteBlob(blobstore_handlers.BlobstoreUploadHandler):
 
 application = webapp.WSGIApplication([
     ('/i/blob', BlobServer),
-    ('/i/css', FileServer),
+    ('/i/css', CSSServer),
+    ('/i/jscript', JScriptServer),
     ('/i/img', ImageServer),
     ('/i/thumb', ThumbServer),
     (r'/remote/upload/blob/(.*)', RemoteBlob),
