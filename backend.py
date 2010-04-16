@@ -19,6 +19,7 @@ from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.ext import blobstore
 from django.utils import simplejson
 from urlgetter import geturl
+from datetime import datetime
 
 from models import Image,File,BlobFile,RealmKeys,UploadRequestKeys
 
@@ -33,7 +34,7 @@ class Index(webapp.RequestHandler):
         # the current user. You can't see anyone elses images
         # in the admin
         
-        test = geturl('http://org-images.appspot.com/remote/upload/image/agpvcmctaW1hZ2VzchALEglSZWFsbUtleXMY0Q8M') #add valid realmkey
+        test = geturl('http://org-images.appspot.com/remote/upload/image/[valid key]') #add valid realmkey
         url = test.get_url()
         
         
@@ -193,6 +194,13 @@ class BlobUploader(blobstore_handlers.BlobstoreUploadHandler):
         blobfile.put()
         self.redirect('/')
 
+class KeyDeleter(webapp.RequestHandler):
+    def get(self):
+        allkeys = UploadRequestKeys.all()
+        for key in allkeys:
+            if not key.expire_date > datatime.now():
+                key.delete()
+
 # wire up the views
 application = webapp.WSGIApplication([
     ('/', Index),
@@ -200,6 +208,7 @@ application = webapp.WSGIApplication([
     ('/upload/css', CSSUploader),
     ('/upload/jscript', JscriptUploader),
     ('/upload/blob', BlobUploader),
+    ('/tasks/deletekeys', KeyDeleter),
     ('/delete', Deleter),
 ], debug=True)
 

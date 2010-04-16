@@ -61,7 +61,7 @@
 	     <ul id="realms">
 	    {% for realm in realms %}
                 <li>
-				{{realm.realm_name}}(<span>{{realm.key}}</span>)<a href="" onlclick="alert(this + 'clicked');RemoteUpload.getUrl(this,'document.location' + remote/upload/image + '{{realm.key}}')" rel="lightbox[external]">Test remote image upload</a>
+				{{realm.realm_name}}(<span>{{realm.key}}</span>)<a href="" rel="lightbox[external]">Test remote image upload</a>
                 </li>
             {% endfor %}
 	     </ul>

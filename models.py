@@ -28,13 +28,15 @@ class Image(db.Model):
     # all images are associated with the user who uploades them
     # this way we can make it a multi user system if that's useful
     user = db.UserProperty()
+    realm = db.ReferenceProperty(RealmKeys)
     #cat = db.ReferenceProperty(Category,collection_name='images')
 
 class File(db.Model):
-    "Represents a file stored in the datastore"
+    "Represents a file stored in the datastore either css or java"
     # blog properties storing up to 1MB of binary data
-    name = db.TextProperty()
+    name = db.StringProperty()
     file = db.BlobProperty()
+    compressed = db.BlobProperty()
     content_type = db.StringProperty()
     # store the date just in case
     date = db.DateTimeProperty(auto_now_add=True)
@@ -53,18 +55,7 @@ class TemplateFile(db.Model):
     # all images are associated with the user who uploades them
     # this way we can make it a multi user system if that's useful
     user = db.UserProperty()
-    #cat = db.ReferenceProperty(Category,collection_name='cssfiles')
-
-class JavascriptFile(db.Model):
-    "Represents a file stored in the datastore"
-    # blog properties storing up to 1MB of binary data
-    name = db.TextProperty()
-    file = db.BlobProperty()
-    # store the date just in case
-    date = db.DateTimeProperty(auto_now_add=True)
-    # all images are associated with the user who uploades them
-    # this way we can make it a multi user system if that's useful
-    user = db.UserProperty()
+    realm = db.ReferenceProperty(RealmKeys)
     #cat = db.ReferenceProperty(Category,collection_name='cssfiles')
 
 class BlobFile(db.Model):
@@ -73,5 +64,6 @@ class BlobFile(db.Model):
     blobkey = blobstore.BlobReferenceProperty()
     date = db.DateTimeProperty(auto_now_add=True)
     user = db.UserProperty()
+    realm = db.ReferenceProperty(RealmKeys)
     #cat = db.ReferenceProperty(Category,collection_name='blobfiles')
     

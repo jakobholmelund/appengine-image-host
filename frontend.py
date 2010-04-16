@@ -20,6 +20,7 @@ from google.appengine.api import users
 import urllib
 import cssmin
 
+from datetime import datetime, timedelta
 from models import Image,File,BlobFile,RealmKeys,UploadRequestKeys
   
 class GenericServer(webapp.RequestHandler):
@@ -56,6 +57,9 @@ class GenericServer(webapp.RequestHandler):
                 # with the relevant headers
                 
                 self.response.headers['Content-Type'] = "text/css"
+                
+                #filename = object.name.encode('utf-8')
+                #self.response.headers['Content-Disposition'] = ('attachment; filename="%s"' % filename)
                 # and then write our the image data direct to the response
                 self.response.out.write(file)    
             else:
@@ -66,6 +70,8 @@ class GenericServer(webapp.RequestHandler):
                 # we have an file so prepare the response
                 # with the relevant headers
                 self.response.headers['Content-Type'] = "text/javascript"
+                #filename = object.name.encode('utf-8')
+                #self.response.headers['Content-Disposition'] = ('attachment; filename="%s"' % filename)
                 # and then write our the image data direct to the response
                 self.response.out.write(file)    
             else:
@@ -121,6 +127,7 @@ class RemoteImage(webapp.RequestHandler):
                 self.error(404)
             newupload = UploadRequestKeys()
             newupload.realm_key = realm
+            newupload.expire_date = datetime.now() + timedelta(hours=1)
             newupload.put()
             result = dict(type='image',upload_url=str(self.request.url).replace(key,str(newupload.key())))
             json = simplejson.JSONEncoder().encode(result)
@@ -140,7 +147,8 @@ class RemoteImage(webapp.RequestHandler):
         checkkey = UploadRequestKeys.get(key)
         if not checkkey:
             self.error(404)
-        checkkey.delete()
+        if checkkey.expire_date < datetime.now():
+            self.error(404)
         img = self.request.get("img")
         # if we don't have image data we'll quit now
         if not img:
@@ -164,7 +172,9 @@ class RemoteImage(webapp.RequestHandler):
         image.original = db.Blob(original_content)
         image.thumb = db.Blob(thumb_content)
         image.user = users.get_current_user()
+        image.realm = RealmKeys.get(checkkey.realm_key)
         image.put()
+        checkkey.delete()
         #self.response.out.write(simplejson.dumps({'img_url'::}))
         context = {
                 "image":True,

@@ -1,0 +1,4 @@
+cron:
+- description: daily deletion of unused keys
+  url: /tasks/deletekeys
+  schedule: every 24 hours
