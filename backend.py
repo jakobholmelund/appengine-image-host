@@ -37,11 +37,9 @@ class Index(webapp.RequestHandler):
         test = geturl('http://org-images.appspot.com/remote/upload/image/[valid key]') #add valid realmkey
         url = test.get_url()
         
-        
         user = users.get_current_user()
         
         realms = RealmKeys.all()
-        
         images = Image.all().filter("user =", user).order("-date")
         
         cssfilesq = File.all()
@@ -50,14 +48,11 @@ class Index(webapp.RequestHandler):
         cssfiles = cssfilesq.filter('content_type =', 'text/css').order("-date")
         jscriptfiles = jscriptfilesq.filter('content_type =','text/x-c').order("-date")
         
-        #logging.getLogger().info(cssfilesq[0])
-        
         blobs = BlobFile.all()
         blobs.filter("user =", user)
         blobs.order("-date")
         
         # we are enforcing loggins so we know we have a user
-        
         # we need the logout url for the frontend
         logout = users.create_logout_url("/")
 
@@ -135,18 +130,33 @@ class CSSUploader(webapp.RequestHandler):
         if not fil.value:
             self.redirect('/')
             return
-        minifi = self.request.get("minify")
-        
-        if minifi:
-            fil.value = cssmin.cssmin(fil.value)
+
         file = File()
         file.name = fil.filename
-        file.file = db.Blob(fil.value)
+        file.file = db.Blob(cssmin.cssmin(fil.value))
+        file.original = db.Blob(fil.value)
         file.content_type = fil.type
         file.user = users.get_current_user()
         file.put()
         self.redirect('/')
         
+class CSSUpdater(webapp.RequestHandler):
+    def post(self):
+        logging.getLogger().info('Post is %s'%self.request.POST)
+        fil = self.request.POST["file_2"]
+        if not fil.value:
+            self.redirect('/')
+            return
+
+        file = File.get(self.request.get("csskey"))
+        file.name = fil.filename
+        file.file = db.Blob(cssmin.cssmin(fil.value))
+        file.original = db.Blob(fil.value)
+        file.content_type = fil.type
+        file.user = users.get_current_user()
+        file.put()
+        self.redirect('/')
+
 class JscriptUploader(webapp.RequestHandler):
     def post(self):
         fil = self.request.POST["file"]
@@ -206,6 +216,7 @@ application = webapp.WSGIApplication([
     ('/', Index),
     ('/upload/image', ImageUploader),
     ('/upload/css', CSSUploader),
+    ('/update/css', CSSUpdater),
     ('/upload/jscript', JscriptUploader),
     ('/upload/blob', BlobUploader),
     ('/tasks/deletekeys', KeyDeleter),

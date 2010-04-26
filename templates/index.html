@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
@@ -104,20 +104,28 @@
 	    <form action="/upload/css" enctype="multipart/form-data" method="post">
                 <label for="file">File</label>
                 <input type="file" name="file" id="file"/>
-				<label for="minify">Compress</label>
-				<input type="checkbox" name="minify" id="minify" value="True" checked> 
                 <input type="submit" value="Upload"/>
-            </form>
+         </form>
 			
 	    {% if cssfiles %}
             <ul id="files">
             {% for file in cssfiles %}
                 <li>
-                    <a href="/i/css?id={{file.key}}">{{file.name}}</a>
+					<div class="css-holder">
+					<span>Filename: <strong>{{file.name}}</strong> - Download: <a href="/i/css?id={{file.key}}">Compressed</a> | <a href="/i/css?id={{file.key}}&org=true">Original</a></span>
+					
+					<div class="css-file-forms">
                     <form action="/delete" method="post">
                         <input type="hidden" value="{{file.key}}" name="key"/>
-                        <input type="submit" value="Delete" name="delete"/>
+                        <input type="submit" value="Delete CSS file" name="delete"/>
                     </form>
+					<form action="/update/css" enctype="multipart/form-data" method="post">
+						<input type="file" name="file_2" id="file_2"/>
+						<input type="hidden" value="{{file.key}}" name="csskey"/>
+                        <input type="submit" value="Update CSS file"/>
+                    </form>
+					</div>
+					</div>
                 </li>
             {% endfor %}
             </ul> 

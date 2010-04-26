@@ -48,20 +48,22 @@ class GenericServer(webapp.RequestHandler):
         
         if self.property =='css':
             if object and object.file:
-                file = object.file
+                file = None
+                if str(self.request.get("org")).__eq__('true'):
+                    file = object.original
+                else:
+                    file = object.file
                 
                 compress = self.request.get("compress")
                 if compress == 'true':
                     file = cssmin.cssmin(file)
                 # we have an file so prepare the response
                 # with the relevant headers
-                
                 self.response.headers['Content-Type'] = "text/css"
-                
-                #filename = object.name.encode('utf-8')
-                #self.response.headers['Content-Disposition'] = ('attachment; filename="%s"' % filename)
+                filename = object.name.encode('utf-8')
+                self.response.headers['Content-Disposition'] = ('inline; filename="%s"' % filename)
                 # and then write our the image data direct to the response
-                self.response.out.write(file)    
+                self.response.out.write(file)
             else:
                 self.error(404)
         elif self.property =='jscript':
@@ -70,10 +72,10 @@ class GenericServer(webapp.RequestHandler):
                 # we have an file so prepare the response
                 # with the relevant headers
                 self.response.headers['Content-Type'] = "text/javascript"
-                #filename = object.name.encode('utf-8')
-                #self.response.headers['Content-Disposition'] = ('attachment; filename="%s"' % filename)
+                filename = object.name.encode('utf-8')
+                self.response.headers['Content-Disposition'] = ('inline; filename="%s"' % filename)
                 # and then write our the image data direct to the response
-                self.response.out.write(file)    
+                self.response.out.write(file)
             else:
                 self.error(404)
         elif self.property == 'image' or self.property=='thumb':
@@ -85,7 +87,7 @@ class GenericServer(webapp.RequestHandler):
                 self.response.out.write(eval("object.%s" % self.property))
             else:
                 self.error(404)
-                
+
 class CSSServer(GenericServer):
     "Serve a File"
     property = 'css'

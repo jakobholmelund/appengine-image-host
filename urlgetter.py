@@ -6,7 +6,7 @@ import logging
 
 class geturl:
     def __init__(self,url):
-        self.result = None
+        self.result = dict(upload_url=None)
         try:
             response = StringIO(urlfetch.fetch(url).content)
             self.result = simplejson.load(response)
@@ -15,4 +15,6 @@ class geturl:
         except ValueError:
             logging.getLogger().info(r"JSON could not be decoded")
     def get_url(self):
-        return self.result["upload_url"]
+        if self.result["upload_url"]:
+            return self.result["upload_url"]
+        return None

@@ -36,7 +36,7 @@ class File(db.Model):
     # blog properties storing up to 1MB of binary data
     name = db.StringProperty()
     file = db.BlobProperty()
-    compressed = db.BlobProperty()
+    original = db.BlobProperty()
     content_type = db.StringProperty()
     # store the date just in case
     date = db.DateTimeProperty(auto_now_add=True)

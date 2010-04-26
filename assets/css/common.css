@@ -84,3 +84,24 @@ a:hover, a:focus {
 	float:left;
 	width:100%;
 }
+
+#content div.css-file-forms{
+width:auto;
+float:right;
+}
+
+#content div.css-file-forms form{
+background-color:white;
+height:auto;
+padding-top:0;
+position:relative;
+float:left;
+}
+
+.css-holder {
+width:100%;
+float:left;
+}
+.css-holder span {
+float left;
+}
