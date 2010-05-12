@@ -4,7 +4,9 @@ Purposely simple file/image management application for use on Google AppEngine.
 
 h2. Background
 
-I like to add the odd image to a blog post now and then, but hate having to upload and resize images so they fit nicely. This simple application scratches that itch. Simply upload and resize images and then host them from AppEngine. It was also the perfect opportunity to play with the Image API.
+This is a fork of the image-host. This version is now a full fledged file-host. You can upload css and javascript-files when doing this the app will both save a compressed version as well as the original if you wish to edit later from a different location. I have also implemented the blob-store so that you can save ANY kind of file under 50mb.
+
+The Compression for css is YUI and the compression for javascriptfiles is googles closure algorithm which should be the best of them all.
 
 h2. Usage
 
@@ -22,8 +24,6 @@ pre. - url: /.*
   script: backend.py
   login: required
 
-This fork adds the possibility to host any kind of file through the blobstore, and has a special-case for css-files with the possibility to YUI-copress the css at upload-time, i might add this to be done on the fly.. Or actually this is gonna happen for sure.
-  
 h2. Licence
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
